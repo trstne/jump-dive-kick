@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.scene.paint.Color;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
@@ -11,28 +12,32 @@ import javafx.animation.AnimationTimer;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
 
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 
 public class Main extends Application
 
 
 {
-    //public static final DecimalFormat df1 = new DecimalFormat( "#" );
+	public boolean debugMenu = false;
+    public static final DecimalFormat df1 = new DecimalFormat( "#" );
 
     public static void main(String[] args)
     {
-        launch(args); //launches program
-    }
+        launch(args);
+    } //launches program
 
     @Override
     public void start(Stage theStage)
     {
         theStage.setTitle( "Jump... Dive... Kick!" );
 
-        Image bg = new Image(("bg1.gif"));
+        Image bg = new Image(("Background_1.gif"));
         ImageView background = new ImageView();
         background.setImage(bg);
 
@@ -43,6 +48,7 @@ public class Main extends Application
         HBox box = new HBox();
         box.getChildren().add(background);
         root.getChildren().add(box);
+
 
         Canvas canvas = new Canvas( 800, 492);
         root.getChildren().add( canvas );
@@ -70,205 +76,153 @@ public class Main extends Application
                     }
                 });
 
+        Sprite PlayerA = new Sprite(); //Initiates a Sprite() class to "PlayerA"
+        PlayerA.setPosition(80, 300); //Sets the position of the Sprite
+
+        PlayerA.facingRight = true;
+
+        PlayerA.Player_diveKickImage = "PlayerA_DIVEKICK.png";
+        PlayerA.Player_backJumpImage = "PlayerA_BACKJUMP.png";
+        PlayerA.Player_JumpImage = "PlayerA_JUMP.png";
+        PlayerA.Player_idleImage = "PlayerA_IDLE.png";
+
+        Sprite PlayerB = new Sprite();
+        PlayerB.setPosition(640, 300);
+
+        PlayerB.facingRight = false;
+
+        PlayerB.Player_diveKickImage = "PlayerB_DIVEKICK.png";
+        PlayerB.Player_backJumpImage = "PlayerB_BACKJUMP.png";
+        PlayerB.Player_JumpImage = "PlayerB_JUMP.png";
+        PlayerB.Player_idleImage = "PlayerB_IDLE.png";
+
         GraphicsContext gc = canvas.getGraphicsContext2D(); // Uses a GraphicsContext to update and render within the canvas
 
 
-        Sprite PlayerA = new Sprite(); //Initaites a Sprite() class to "PlayerA"
-        PlayerA.setImage("101.png");    //Sets the Image of the Spite()
-        PlayerA.setPosition(80, 300); //Sets the position of the Sprite
-
-        Sprite PlayerB = new Sprite();
-        PlayerB.setImage("201.png");
-        PlayerB.setPosition(640, 300);
-
-
         LongValue lastNanoTime = new LongValue( System.nanoTime() ); //Used to identify how much time has passed since the last update
-        //LongValue intialNanoTime = new LongValue( System.nanoTime() );
 
         new AnimationTimer()
         {
             public void handle(long currentNanoTime) {
 
                 double elapsedTime = (currentNanoTime - lastNanoTime.value) / 1000000000.0; //When updating, uses the time that has elapsed sine the last update
-                lastNanoTime.value = currentNanoTime; //Once the update has occured, the timer resets to 0.
-
-                if (PlayerA.positionY >= 300) { //Makes Y = 300 "the Ground". Player A cannot goto a higher Y value, as he will be transported back.
-                    PlayerA.setVelocity(0, 0);
-                    PlayerA.setPositionY(300);
-                }
+                lastNanoTime.value = currentNanoTime; //Once the update has occurred, the timer resets to 0.
+            // while(PlayerA.Win <= 20 && PlayerB.Win <= 20 )
 
                 if (input.contains("D"))
                 {
-                    if (PlayerA.positionY < 300)
+                    if (PlayerA.positionY < 200  && (boolean) PlayerA.jumpBackAnimation== false)
                     {
-                        PlayerA.setVelocityX(500);
-                        PlayerA.setImage("102.png");
                         PlayerA.diveKick = true;
                     }
                 }
 
                 if (input.contains("A"))
                 {
-                    if (PlayerA.positionY >= 265)
+                    if (PlayerA.positionY == 300 && PlayerA.jump == false) {
+                        PlayerA.jumpBackMotion = true;
+                        PlayerA.jumpBackAnimation = true;
+                    }
+
+                    if (PlayerA.positionY < 300 && PlayerA.jumpBackMotion == true)
                     {
-                        PlayerA.jumpBack = true;
-
-                        if (PlayerA.positionY == 300)
-                        {
-                            PlayerA.addVelocity(-400, -300);
-                        }
+                        PlayerA.jumpBackMotion = false;
                     }
                 }
-                if (input.contains("W") && (boolean) PlayerA.diveKick == false && (boolean) PlayerA.jumpBack== false) {
-                    if (PlayerA.positionY >= 250) {
-                        PlayerA.addVelocity(0, -150);
-                        PlayerA.setImage("104.png");
+                if (input.contains("W") && PlayerA.positionY >= 250) {
+
+                        PlayerA.jump = true;
+                }
+
+                if (input.contains("Y"))
+                		{
+                	PlayerA.secretPlayer = true;
+                	PlayerA.Player_diveKickImage = "SecretA_DIVEKICK.png";
+                	PlayerA.Player_backJumpImage = "SecretA_BACKJUMP.png";
+                	PlayerA.Player_JumpImage = "SecretA_JUMP.png";
+                	PlayerA.Player_idleImage = "SecretA_IDLE.png";
+                	debugMenu = true;
+                		}
+
+                if (PlayerA.diveKick == true)
+                {
+                    if (PlayerB.positionX < PlayerA.footpositionX && PlayerA.footpositionX < (PlayerB.width + PlayerB.positionX)
+                            && PlayerB.positionY < PlayerA.footpositionY && PlayerA.footpositionY < (PlayerB.height + PlayerB.positionY)) {
+
+                        PlayerA.Win += 1;
+                        PlayerA.setPosition(80, 300);
+                        PlayerB.setPosition(640, 300);
                     }
                 }
-
-                if (PlayerA.jumpBack == true)
-                {
-                    PlayerA.setImage("103.png");
-                }
-
-                if (PlayerA.positionY <= 0) {
-                    PlayerA.setVelocityY(50);
-                }
-
-                if (PlayerA.positionY == 300)
-                {
-                    PlayerA.jumpBack = false;
-                    PlayerA.diveKick = false;
-                    PlayerA.setImage("101.png");
-                }
-
-                if (PlayerA.positionX < -30) // Left Boundary Code
-                {
-                    PlayerA.setPositionX(830);
-
-                }
-
-                if (PlayerA.positionX > 830) // Right Boundary Code
-                {
-                    PlayerA.setPositionX(-30);
-
-                }
-
-
+                
                 PlayerA.update(elapsedTime); // Uses position and time to update the player and their velocity
-
-                if (PlayerB.positionY >= 300) { //Makes Y = 300 "the Ground". Player A cannot goto a higher Y value, as he will be transported back.
-                    PlayerB.setVelocity(0, 0);
-                    PlayerB.setPositionY(300);
-                }
 
                 if (input.contains("LEFT"))
                 {
-                    if (PlayerB.positionY < 300)
+                    if (PlayerB.positionY < 200  && PlayerB.jumpBackAnimation== false)
                     {
-                        PlayerB.setVelocityX(-500);
-                        PlayerB.setImage("202.png");
                         PlayerB.diveKick = true;
                     }
                 }
 
                 if (input.contains("RIGHT"))
                 {
-                    if (PlayerB.positionY >= 265)
+                    if (PlayerB.positionY == 300 && PlayerB.jump == false)
                     {
-                        PlayerB.jumpBack = true;
+                        PlayerB.jumpBackMotion = true;
+                        PlayerB.jumpBackAnimation = true;
+                    }
 
-                        if (PlayerB.positionY == 300)
-                        {
-                            PlayerB.addVelocity(400, -300);
-                        }
+                    if (PlayerB.positionY < 300 && PlayerB.jumpBackMotion == true)
+                    {
+                        PlayerB.jumpBackMotion = false;
                     }
                 }
-                if (input.contains("UP") && (boolean) PlayerB.diveKick == false && (boolean) PlayerB.jumpBack== false) {
-                    if (PlayerB.positionY >= 250) {
-                        PlayerB.addVelocity(0, -150);
-                        PlayerB.setImage("204.png");
+                if (input.contains("UP") && PlayerB.positionY >= 250) {
+
+                    PlayerB.jump = true;
+                }
+
+                if (PlayerB.diveKick == true)
+                {
+                    if (PlayerA.positionX < PlayerB.positionX && PlayerB.positionX < (PlayerA.width + PlayerA.positionX)
+                            && PlayerA.positionY < (PlayerB.positionY + PlayerB.height) && (PlayerB.positionY + PlayerB.height) < (PlayerA.height + PlayerA.positionY)) {
+
+                        PlayerB.Win += 1;
+                        PlayerA.setPosition(80, 300);
+                        PlayerB.setPosition(640, 300);
                     }
                 }
-
-                if (PlayerB.jumpBack == true)
-                {
-                    PlayerB.setImage("203.png");
-                }
-
-                if (PlayerB.positionY <= 0) {
-                    PlayerB.setVelocityY(50);
-                }
-
-                if (PlayerB.positionY == 300)
-                {
-                    PlayerB.jumpBack = false;
-                    PlayerB.diveKick = false;
-                    PlayerB.setImage("201.png");
-                }
-
-                if (PlayerB.positionX < -30) // Left Boundary Code
-                {
-                    PlayerB.setPositionX(830);
-
-                }
-
-                if (PlayerB.positionX > 830) // Right Boundary Code
-                {
-                    PlayerB.setPositionX(-30);
-
-                }
-
 
                 PlayerB.update(elapsedTime); // Uses position and time to update the player and their velocity
 
-                // collision detection
+                gc.clearRect(0, 0, 800,492); //Renders a clear rectangle above which our sprites will be rendered
+                PlayerA.render( gc ); //Renders our sprites within their relative positions
+                PlayerB.render( gc );
+                
+                gc.setFont(Font.font ("Arial", 20));
+                String PlayerAWins = "Player A Wins: " + PlayerA.Win;
+                gc.fillText( PlayerAWins, 300, 36 );
+                
 
-                if ( PlayerA.intersects(PlayerB) )
-                {
+                String PlayerBWins= "Player B Wins: " + PlayerB.Win;
+                gc.fillText( PlayerBWins, 300, 56 );
+                
+                
+                if (debugMenu == true) {
 
-                    if ((PlayerA.positionY > PlayerB.positionY) && ((boolean) PlayerA.diveKick == true)) {
-                        PlayerA.Win += 1;
-                        PlayerA.setPosition(80, 300);
-                        PlayerB.setPosition(640, 300);
-                    }
+                    gc.setFill(Color.RED);
 
-                    if ((PlayerB.positionY > PlayerA.positionY) && ((boolean) PlayerB.diveKick == true)) {
-                        PlayerB.Win += 1;
-                        PlayerA.setPosition(80, 300);
-                        PlayerB.setPosition(640, 300);
-                    }
+                    //String PlayerAPosition = "Player A Position: (" + (df1.format(PlayerA.positionX)) + "," + (df1.format(PlayerA.positionY)) + ")";
+                   // String PlayerBPosition = "Player B Position: (" + (df1.format(PlayerB.positionX)) + "," + (df1.format(PlayerB.positionY)) + ")";
+                    String InputString = "Keys Pressed " + input;
+                    gc.fillText( InputString, 300, 80 );
+
+                    String DebugMode = "DEVELOPER MODE";
+                    gc.fillText(DebugMode, 0, 20);
                 }
 
-              /*  if ( PlayerB.intersects(PlayerA) )
-                {
-                    PlayerA.update(elapsedTime);
-                    PlayerB.update(elapsedTime);
-
-                    if ((PlayerB.positionY > PlayerA.positionY)) {
-                        PlayerB.Win += 1;
-                        PlayerA.setPosition(80, 300);
-                        PlayerB.setPosition(640, 300);
-                    }
-                } */
-
-
-
-
-
-                gc.clearRect(0, 0, 800,492); //Renders a clear rectangle above which our sprites will be rendered
-                PlayerA.render( gc ); //Renders our sprites within their relative postions
-                PlayerB.render( gc );
-
-
-                //double countDownTime =  ((intialNanoTime.value - currentNanoTime) + 100000000000.0 ) / 1000000000.0;
-                String PlayerAPos = "Player A Wins: " + PlayerA.Win;
-                gc.fillText( PlayerAPos, 360, 36 );
-                gc.strokeText( PlayerAPos, 360, 36 );
-
-                String PlayerBPos= "Player B Wins: " + PlayerB.Win;
-                gc.fillText( PlayerBPos, 360, 50 );
-                gc.strokeText( PlayerBPos, 360, 50 );
+               
             }
         }.start(); // Begins execution
 

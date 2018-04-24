@@ -1,20 +1,41 @@
 import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
+
+import java.awt.image.RescaleOp;
+
 import javafx.geometry.Rectangle2D;
 
 public class Sprite
 {
     private Image image;
+
     public double positionX;
     public double positionY;
-    public double velocityX;
-    public double velocityY;
-    private double gravity = 35;
-    private double width;
-    private double height;
-    public boolean onGround = false;
+
+    public double footpositionX;
+    public double footpositionY;
+
+    private double velocityX;
+    private double velocityY;
+
+    private double gravity = 30;
+
+    public double width;
+    public double height;
+
     public boolean diveKick;
-    public boolean jumpBack = false;
+    public boolean jumpBackMotion;
+    public boolean jumpBackAnimation;
+    public boolean jump;
+
+    public boolean secretPlayer= false;
+
+    public String Player_backJumpImage;
+    public String Player_JumpImage;
+    public String Player_idleImage;
+    public String Player_diveKickImage;
+
+    public boolean facingRight = false;
 
     public double Win = 0;
 
@@ -26,6 +47,16 @@ public class Sprite
         positionY = 0;
         velocityX = 0;
         velocityY = 0;
+
+        String Player_diveKickImage;
+    }
+
+    public void setFile(String filename) // Initiates "i" to an image, Initiates width and height to that image's width and height (for hitbox)
+    {
+        String Player_backJumpImage;
+        String Player_JumpImage;
+        String Player_idleImage;
+        String Player_diveKickImage;
     }
 
     public void setImage(Image i) // Initiates "i" to an image, Initiates width and height to that image's width and height (for hitbox)
@@ -89,11 +120,77 @@ public class Sprite
         positionY += velocityY * time;
         velocityY += gravity;
 
+        footpositionX = positionX + width;
+        footpositionY = positionY + height;
+
+        if (positionY >= 300) { //Makes Y = 300 "the Ground".
+            setVelocity(0, 0);
+            setPositionY(300);
+            setImage(Player_idleImage);
+        }
+
+        if (diveKick == true)
+        {
+            setImage(Player_diveKickImage);
+            setVelocityY(0);
+            addVelocity(0, 500);
+
+            if (facingRight) {
+                setVelocityX(500);
+            }
+
+            if (!facingRight){
+                setVelocityX(-500);
+            }
+        }
+
+        if (jumpBackMotion == true)
+        {
+            if (positionY == 300)
+            {
+                if (facingRight) {
+                    addVelocity(-400, -300);
+                }
+                if (!facingRight) {
+                    addVelocity(400, -300);
+                }
+            }
+        }
+
+        if (jumpBackAnimation == true)
+        {
+            setImage(Player_backJumpImage);
+        }
+
+        if (jump == true)
+        {
+            if (positionY >= 250 && diveKick == false && jumpBackAnimation == false) {
+                addVelocity(0, -150);
+                setImage(Player_JumpImage);
+            }
+
+            else
+            {
+                jump = false;
+            }
+        }
+
         if (positionY == 300){
-            onGround = true;
+            jumpBackAnimation = false;
+            jumpBackMotion = false;
+            diveKick = false;
         }
 
 
+        if (positionX < -30) // Left Boundary Code
+        {
+            setPositionX(830);
+        }
+
+        if (positionX > 830) // Right Boundary Code
+        {
+            setPositionX(-30);
+        }
     }
 
     public void render(GraphicsContext gc) // Tells the canvas what and where to draw an image
@@ -101,16 +198,7 @@ public class Sprite
         gc.drawImage( image, positionX, positionY );
     }
 
-    public Rectangle2D getBoundary() // Gets the boundaries of an associated image (to be used in hitbox)
-    {
-        return new Rectangle2D(positionX,positionY,width,height);
 
-    }
-
-    public boolean intersects(Sprite s)
-    {
-        return s.getBoundary().intersects( this.getBoundary() );
-    }
 
     public String toString() //Returns a textual representation of these springs as "[# , #}", as opposed to hash code.
     {
