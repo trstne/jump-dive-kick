@@ -1,7 +1,7 @@
 import javafx.application.Application;
 import javafx.scene.paint.Color;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.Group;
@@ -11,49 +11,42 @@ import javafx.scene.image.Image;
 import javafx.animation.AnimationTimer;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
-
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-
-
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
-
 public class Main extends Application
 
-
 {
-	public boolean debugMenu = false;
-    public static final DecimalFormat df1 = new DecimalFormat( "#" );
+    public static final DecimalFormat decimalFormatWINS = new DecimalFormat( "#" ); // Decimal Format used to remove decimals from Win Count
 
     public static void main(String[] args)
     {
         launch(args);
-    } //launches program
+    } // Launches Code
 
-    @Override
     public void start(Stage theStage)
     {
-        theStage.setTitle( "Jump... Dive... Kick!" );
+        theStage.setTitle( "Jump... Dive... Kick!" ); // Sets Window Title
 
-        Image bg = new Image(("Background_1.gif"));
-        ImageView background = new ImageView();
-        background.setImage(bg);
-
-        Group root = new Group();
+        Group root = new Group();   // Sets JavaFX scene, as well as the root, from which objects will be added.
         Scene theScene = new Scene( root );
         theStage.setScene( theScene );
 
-        HBox box = new HBox();
-        box.getChildren().add(background);
-        root.getChildren().add(box);
+        Image bg = new Image(("Background_1.gif")); // Sets Background_1.gif to background and adds the Background to the root
+        ImageView background = new ImageView();
+        background.setImage(bg);
+        root.getChildren().add(background);
 
+        Rectangle nameplateA = new Rectangle(); // Initiates the nameplate boxes behind the "Wins" text and adds the nameplates to the root
+        Rectangle nameplateB = new Rectangle();
+        root.getChildren().add(nameplateA);
+        root.getChildren().add(nameplateB);
 
-        Canvas canvas = new Canvas( 800, 492);
+        Canvas canvas = new Canvas( 800, 492); // Initiates the nameplate boxes behind the "Wins" text and adds the nameplates to the root.
         root.getChildren().add( canvas );
 
-        ArrayList<String> input = new ArrayList<String>(); //The array holds the key input of the user
+        ArrayList<String> input = new ArrayList<String>(); // The array holds the key input of the user
 
         theScene.setOnKeyPressed(
                 new EventHandler<KeyEvent>()
@@ -76,72 +69,57 @@ public class Main extends Application
                     }
                 });
 
-        Sprite PlayerA = new Sprite(); //Initiates a Sprite() class to "PlayerA"
-        PlayerA.setPosition(80, 300); //Sets the position of the Sprite
+        Sprite PlayerA = new Sprite(); //Initiates a Sprite() class to "PlayerA", and sets into to its default location.
+        PlayerA.ID(1); //Sets the Player ID, which handles which images are associated with which Player
+        PlayerA.setPosition(80, 300);
 
-        PlayerA.facingRight = true;
+        PlayerA.facingRight = true; // The first player faces right so this is set to true; This variable helps with DiveKicks and JumpBacks
 
-        PlayerA.Player_diveKickImage = "PlayerA_DIVEKICK.png";
-        PlayerA.Player_backJumpImage = "PlayerA_BACKJUMP.png";
-        PlayerA.Player_JumpImage = "PlayerA_JUMP.png";
-        PlayerA.Player_idleImage = "PlayerA_IDLE.png";
-
-        Sprite PlayerB = new Sprite();
+        Sprite PlayerB = new Sprite(); //Initiates a Sprite() class to "PlayerB", and sets into to its default location.
         PlayerB.setPosition(640, 300);
+        PlayerB.ID(2);
+        PlayerB.facingRight = false; // The second player faces left so this is set to false; This variable helps with DiveKicks and JumpBacks
 
-        PlayerB.facingRight = false;
-
-        PlayerB.Player_diveKickImage = "PlayerB_DIVEKICK.png";
-        PlayerB.Player_backJumpImage = "PlayerB_BACKJUMP.png";
-        PlayerB.Player_JumpImage = "PlayerB_JUMP.png";
-        PlayerB.Player_idleImage = "PlayerB_IDLE.png";
-
-        GraphicsContext gc = canvas.getGraphicsContext2D(); // Uses a GraphicsContext to update and render within the canvas
-
+        GraphicsContext gameArea = canvas.getGraphicsContext2D(); // Uses a GraphicsContext to update and render within the canvas
 
         LongValue lastNanoTime = new LongValue( System.nanoTime() ); //Used to identify how much time has passed since the last update
 
-        new AnimationTimer()
+        new AnimationTimer() //Begins an animation timer, which allows for actions to be reflected within a "game time"
         {
-            public void handle(long currentNanoTime) {
+            public void handle(long currentNanoTime)  { //code within the handle called for every frame that the Animation Timer is active
 
-                double elapsedTime = (currentNanoTime - lastNanoTime.value) / 1000000000.0; //When updating, uses the time that has elapsed sine the last update
-                lastNanoTime.value = currentNanoTime; //Once the update has occurred, the timer resets to 0.
+                double elapsedTime = (currentNanoTime - lastNanoTime.value) / 1000000000.0; //When updating, use the time that has elapsed since the last update
+                lastNanoTime.value = currentNanoTime; //Once the update has occurred, lastNanoTime is changed to the currentNanoTime
             // while(PlayerA.Win <= 20 && PlayerB.Win <= 20 )
 
-                if (input.contains("D"))
+                if (input.contains("D")) // Input code reads key presses. If the key "D" is pressed, this if is true
                 {
-                    if (PlayerA.positionY < 200  && (boolean) PlayerA.jumpBackAnimation== false)
+                    if (PlayerA.positionY < 300  &&  !PlayerA.jumpBackAnimation && !input.contains("W")) // If player is at least 80 pixels above the ground, not jumping back, and not holding the W Key...
                     {
-                        PlayerA.diveKick = true;
+                        PlayerA.diveKick = true; // Then set DiveKick = true; check for Divekick code in Sprie.java's update function
                     }
                 }
 
                 if (input.contains("A"))
                 {
-                    if (PlayerA.positionY == 300 && PlayerA.jump == false) {
-                        PlayerA.jumpBackMotion = true;
-                        PlayerA.jumpBackAnimation = true;
+                    if (PlayerA.positionY == 300 && PlayerA.jump == false) //If the player is not jumping, and on the ground
+                    {
+                        PlayerA.jumpBackMotion = true; // Set both jumpBackMotion (which handles the Motion of the Sprite)
+                        PlayerA.jumpBackAnimation = true; // and jumpBackAnimation as true; check for code in the update function
                     }
 
-                    if (PlayerA.positionY < 300 && PlayerA.jumpBackMotion == true)
+                    if (PlayerA.positionY < 300 && PlayerA.jumpBackMotion == true) //Once the player leaves the ground because of the Jumpback, JumpBackMotion is set to false so players don't fly off
                     {
                         PlayerA.jumpBackMotion = false;
                     }
                 }
-                if (input.contains("W") && PlayerA.positionY >= 250) {
-
+                if (input.contains("W") && PlayerA.positionY >= 250 && !input.contains("D")) {
                         PlayerA.jump = true;
                 }
 
-                if (input.contains("Y"))
+                if (input.contains("Y")) // Enables Mario
                 		{
-                	PlayerA.secretPlayer = true;
-                	PlayerA.Player_diveKickImage = "SecretA_DIVEKICK.png";
-                	PlayerA.Player_backJumpImage = "SecretA_BACKJUMP.png";
-                	PlayerA.Player_JumpImage = "SecretA_JUMP.png";
-                	PlayerA.Player_idleImage = "SecretA_IDLE.png";
-                	debugMenu = true;
+                	PlayerA.ID(3);
                 		}
 
                 if (PlayerA.diveKick == true)
@@ -150,6 +128,7 @@ public class Main extends Application
                             && PlayerB.positionY < PlayerA.footpositionY && PlayerA.footpositionY < (PlayerB.height + PlayerB.positionY)) {
 
                         PlayerA.Win += 1;
+
                         PlayerA.setPosition(80, 300);
                         PlayerB.setPosition(640, 300);
                     }
@@ -159,7 +138,7 @@ public class Main extends Application
 
                 if (input.contains("LEFT"))
                 {
-                    if (PlayerB.positionY < 200  && PlayerB.jumpBackAnimation== false)
+                    if (PlayerB.positionY < 300  && PlayerB.jumpBackAnimation== false && !input.contains("UP"))
                     {
                         PlayerB.diveKick = true;
                     }
@@ -179,15 +158,14 @@ public class Main extends Application
                     }
                 }
                 if (input.contains("UP") && PlayerB.positionY >= 250) {
-
                     PlayerB.jump = true;
                 }
 
                 if (PlayerB.diveKick == true)
                 {
                     if (PlayerA.positionX < PlayerB.positionX && PlayerB.positionX < (PlayerA.width + PlayerA.positionX)
-                            && PlayerA.positionY < (PlayerB.positionY + PlayerB.height) && (PlayerB.positionY + PlayerB.height) < (PlayerA.height + PlayerA.positionY)) {
-
+                            && PlayerA.positionY < (PlayerB.positionY + PlayerB.height) && (PlayerB.positionY + PlayerB.height) < (PlayerA.height + PlayerA.positionY))
+                    {
                         PlayerB.Win += 1;
                         PlayerA.setPosition(80, 300);
                         PlayerB.setPosition(640, 300);
@@ -196,33 +174,45 @@ public class Main extends Application
 
                 PlayerB.update(elapsedTime); // Uses position and time to update the player and their velocity
 
-                gc.clearRect(0, 0, 800,492); //Renders a clear rectangle above which our sprites will be rendered
-                PlayerA.render( gc ); //Renders our sprites within their relative positions
-                PlayerB.render( gc );
-                
-                gc.setFont(Font.font ("Arial", 20));
-                String PlayerAWins = "Player A Wins: " + PlayerA.Win;
-                gc.fillText( PlayerAWins, 300, 36 );
-                
+                gameArea.clearRect(0, 0, 800,492); //Renders a clear rectangle above which our sprites will be rendered
+                PlayerA.render( gameArea ); //Renders our sprites within their relative positions
+                PlayerB.render( gameArea );
 
-                String PlayerBWins= "Player B Wins: " + PlayerB.Win;
-                gc.fillText( PlayerBWins, 300, 56 );
-                
-                
-                if (debugMenu == true) {
+                gameArea.setFont(Font.font ("Arial", 20));
+                gameArea.setFill(Color.WHITE);
 
-                    gc.setFill(Color.RED);
+                nameplateB.setX(550);
+                nameplateB.setY(20);
+                nameplateB.setWidth(225);
+                nameplateB.setHeight(25);
+                nameplateB.setFill(Color.rgb(247, 173, 0));
+                String PlayerBWins = "YELLOWBOT:  " + (decimalFormatWINS.format(PlayerB.Win));
+                String WinsB = "WINS";
+                gameArea.fillText( WinsB, 720, 40 );
+                gameArea.fillText( PlayerBWins, 552, 40 );
 
-                    //String PlayerAPosition = "Player A Position: (" + (df1.format(PlayerA.positionX)) + "," + (df1.format(PlayerA.positionY)) + ")";
-                   // String PlayerBPosition = "Player B Position: (" + (df1.format(PlayerB.positionX)) + "," + (df1.format(PlayerB.positionY)) + ")";
-                    String InputString = "Keys Pressed " + input;
-                    gc.fillText( InputString, 300, 80 );
-
-                    String DebugMode = "DEVELOPER MODE";
-                    gc.fillText(DebugMode, 0, 20);
+                if (PlayerA.secretPlayer == true) {
+                    nameplateA.setX(25);
+                    nameplateA.setY(20);
+                    nameplateA.setWidth(165);
+                    nameplateA.setHeight(25);
+                    nameplateA.setFill(Color.rgb(177, 52, 37));
+                    String PlayerAWins = "MARIO:  " + (decimalFormatWINS.format(PlayerA.Win));
+                    String WinsA = "WINS";
+                    gameArea.fillText( PlayerAWins, 27, 40 );
+                    gameArea.fillText( WinsA, 135, 40 );
                 }
-
-               
+                else {
+                    nameplateA.setX(25);
+                    nameplateA.setY(20);
+                    nameplateA.setWidth(195);
+                    nameplateA.setHeight(25);
+                    nameplateA.setFill(Color.rgb(156, 148, 231));
+                    String PlayerAWins = "BLUEBOT:  " + (decimalFormatWINS.format(PlayerA.Win));
+                    String WinsA = "WINS";
+                    gameArea.fillText( WinsA, 165, 40 );
+                    gameArea.fillText( PlayerAWins, 27, 40 );
+                }
             }
         }.start(); // Begins execution
 

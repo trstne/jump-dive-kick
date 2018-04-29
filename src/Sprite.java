@@ -11,6 +11,7 @@ public class Sprite
 
     public double positionX;
     public double positionY;
+    public double id;
 
     public double footpositionX;
     public double footpositionY;
@@ -30,8 +31,8 @@ public class Sprite
 
     public boolean secretPlayer= false;
 
-    public String Player_backJumpImage;
-    public String Player_JumpImage;
+    public String Player_jumpBackImage;
+    public String Player_jumpImage;
     public String Player_idleImage;
     public String Player_diveKickImage;
 
@@ -47,16 +48,6 @@ public class Sprite
         positionY = 0;
         velocityX = 0;
         velocityY = 0;
-
-        String Player_diveKickImage;
-    }
-
-    public void setFile(String filename) // Initiates "i" to an image, Initiates width and height to that image's width and height (for hitbox)
-    {
-        String Player_backJumpImage;
-        String Player_JumpImage;
-        String Player_idleImage;
-        String Player_diveKickImage;
     }
 
     public void setImage(Image i) // Initiates "i" to an image, Initiates width and height to that image's width and height (for hitbox)
@@ -80,13 +71,11 @@ public class Sprite
 
     public void setPositionY(double y) //Allows the program to set the position of a new Sprite();
     {
-
         positionY = y;
     }
 
     public void setPositionX(double x) //Allows the program to set the position of a new Sprite();
     {
-
         positionX = x;
     }
 
@@ -113,14 +102,38 @@ public class Sprite
         velocityY += y;
     }
 
+    public void ID(double id) // Allows the program to add velocity to a new Sprite();
+    {
+        if (id == 1){
+            Player_diveKickImage = "PlayerA_DIVEKICK.png"; //Sets Image Files for the Sprite into Strings
+            Player_jumpBackImage = "PlayerA_JUMPBACK.png";
+            Player_jumpImage = "PlayerA_JUMP.png";
+            Player_idleImage = "PlayerA_IDLE.png";
+        }
+
+        if (id == 2){
+            Player_diveKickImage = "PlayerB_DIVEKICK.png"; //Sets Image Files for the Sprite into Strings
+            Player_jumpBackImage = "PlayerB_JUMPBACK.png";
+            Player_jumpImage = "PlayerB_JUMP.png";
+            Player_idleImage = "PlayerB_IDLE.png";
+        }
+
+        if (id == 3){
+            Player_diveKickImage = "SecretA_DIVEKICK.png"; //Sets Image Files for the Sprite into Strings
+            Player_jumpBackImage = "SecretA_JUMPBACK.png";
+            Player_jumpImage = "SecretA_JUMP.png";
+            Player_idleImage = "SecretA_IDLE.png";
+            secretPlayer = true;
+        }
+    }
 
     public void update (double time)
         {
-        positionX += velocityX * time;
+        positionX += velocityX * time; //Updates the position based on velocity and time
         positionY += velocityY * time;
         velocityY += gravity;
 
-        footpositionX = positionX + width;
+        footpositionX = positionX + width; //Updates the footposition to coincide with the update in postion
         footpositionY = positionY + height;
 
         if (positionY >= 300) { //Makes Y = 300 "the Ground".
@@ -132,21 +145,20 @@ public class Sprite
         if (diveKick == true)
         {
             setImage(Player_diveKickImage);
-            setVelocityY(0);
-            addVelocity(0, 500);
+            setVelocityY(500);
 
-            if (facingRight) {
+            if (facingRight) { //Left Player faces right, his velocity is set +500, and moves to the right
                 setVelocityX(500);
             }
 
-            if (!facingRight){
+            if (!facingRight){ //Right Player  does not face right, his velocity is set -500, and moves to the left
                 setVelocityX(-500);
             }
         }
 
         if (jumpBackMotion == true)
         {
-            if (positionY == 300)
+            if (positionY == 300) //Handles the jumping back motion. Direction is based on which direction the player is facing.
             {
                 if (facingRight) {
                     addVelocity(-400, -300);
@@ -157,16 +169,16 @@ public class Sprite
             }
         }
 
-        if (jumpBackAnimation == true)
+        if (jumpBackAnimation == true) //Updates the sprite when jumping Back
         {
-            setImage(Player_backJumpImage);
+            setImage(Player_jumpBackImage);
         }
 
         if (jump == true)
         {
             if (positionY >= 250 && diveKick == false && jumpBackAnimation == false) {
                 addVelocity(0, -150);
-                setImage(Player_JumpImage);
+                setImage(Player_jumpImage);
             }
 
             else
@@ -181,16 +193,15 @@ public class Sprite
             diveKick = false;
         }
 
+        if ((positionX + width) < 0) // Left Boundary Code
+            {
+                setPositionX(800);
+            }
 
-        if (positionX < -30) // Left Boundary Code
-        {
-            setPositionX(830);
-        }
-
-        if (positionX > 830) // Right Boundary Code
-        {
-            setPositionX(-30);
-        }
+            if (positionX > 800) // Right Boundary Code
+            {
+                setPositionX(0);
+            }
     }
 
     public void render(GraphicsContext gc) // Tells the canvas what and where to draw an image
@@ -200,7 +211,7 @@ public class Sprite
 
 
 
-    public String toString() //Returns a textual representation of these springs as "[# , #}", as opposed to hash code.
+    public String toString() //Returns a textual representation of these strings as "[# , #}", as opposed to hash code.
     {
         return " Position: [" + positionX + "," + positionY + "]"
                 + " Velocity: [" + velocityX + "," + velocityY + "]";

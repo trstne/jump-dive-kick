@@ -7,7 +7,3 @@ public class LongValue
         value = i;
     }
 }
-
-
-//if (input.contains("X"))
-//                PlayerA.setImage("301.png");
